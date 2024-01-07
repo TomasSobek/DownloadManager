@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -8,7 +9,16 @@
 #include <netinet/in.h>
 
 int main() {
-    char server_message[256] = "You have reached the server";
+    FILE *html_data;
+    html_data = fopen("index.html", "r");
+
+    char response_data[1024];
+    fgets(response_data, 1024, html_data);
+
+    char http_header[2048] = "HTTP/1.1 200 OK\r\n\n";
+    strcat(http_header, response_data);
+
+    //char server_message[256] = "You have reached the server";
 
     // create the server socket
     int server_socket;
@@ -26,10 +36,10 @@ int main() {
     listen(server_socket, 5);       // n = number of users which can wait for connection
 
     int client_socket;
-    client_socket = accept(server_socket, NULL, NULL);  // addr = address of client connection
-
-    send(client_socket, server_message, sizeof(server_message), 0);
-
-    close(server_socket);
+    while(1) {
+        client_socket = accept(server_socket, NULL, NULL);  // addr = address of client connection
+        send(client_socket, http_header, sizeof(http_header), 0);
+        close(server_socket);
+    }
     return 0;
 }
