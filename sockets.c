@@ -7,7 +7,7 @@
 #include <string.h>
 #include <malloc.h>
 
-int create_TCP_IPV4_socket(void) {
+static int create_TCP_IPV4_socket(void) {
     return socket(AF_INET, SOCK_STREAM, 0);
 }
 
@@ -21,6 +21,7 @@ int create_server_socket(unsigned int port) {
         exit(EXIT_FAILURE);
     }
 
+    // setting up server ip address structure
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(port);
     server_address.sin_addr.s_addr = INADDR_ANY;
@@ -50,6 +51,7 @@ int create_client_socket(const char *server_ip, unsigned int port) {
         exit(EXIT_FAILURE);
     }
 
+    // setting up server ip address structure
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(port);
     if (strlen(server_ip) == 0) {

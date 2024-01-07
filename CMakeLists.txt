@@ -6,4 +6,6 @@ set(CMAKE_C_STANDARD 11)
 add_executable(SemestralnaPracaUdSP main.c
         sockets.c
         sockets.h
+        file_transfer.c
+        file_transfer.h
 )
