@@ -24,7 +24,7 @@ static void print_progress(size_t total_sent, size_t total_size) {
     float progress = (float)total_sent / total_size;
     int pos = bar_width * progress;
 
-    printf("\r[");
+    printf("\rProgress: [");
     for (int i = 0; i < bar_width; ++i) {
         if (i < pos) printf("=");
         else if (i == pos) printf(">");
