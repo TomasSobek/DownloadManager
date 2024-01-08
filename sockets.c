@@ -5,13 +5,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <unistd.h>
 #include <malloc.h>
 
 static int create_TCP_IPV4_socket(void) {
     return socket(AF_INET, SOCK_STREAM, 0);
 }
 
-int create_server_socket(unsigned int port) {
+void create_server_socket(unsigned int port) {
     int server_socket;
     struct sockaddr_in server_address;
 
@@ -39,10 +40,18 @@ int create_server_socket(unsigned int port) {
     }
     printf("Server socket created and listing on port %d...\n", port);
 
-    return server_socket;
+    struct sockaddr_in client_address;
+    socklen_t client_address_size = sizeof(struct sockaddr_in);
+    int client_socket_fd = accept(server_socket, (struct sockaddr *)&client_address, &client_address_size);
+
+    char buffer[1024];
+    recv(client_socket_fd, buffer, sizeof(buffer), 0);
+
+    printf("Client sends %s.\n", buffer);
+    close(server_socket);
 }
 
-int create_client_socket(const char *server_ip, unsigned int port) {
+void create_client_socket(const char *server_ip, unsigned int port) {
     int client_socket;
     struct sockaddr_in server_address;
 
@@ -50,6 +59,7 @@ int create_client_socket(const char *server_ip, unsigned int port) {
         perror("Error creating client socket.");
         exit(EXIT_FAILURE);
     }
+    printf("User socket was successfully created.\n");
 
     // setting up server ip address structure
     server_address.sin_family = AF_INET;
@@ -72,5 +82,8 @@ int create_client_socket(const char *server_ip, unsigned int port) {
         printf("Connected to server at %s:%d.\n", server_ip, port);
     }
 
-    return client_socket;
+    char *message = "hello world";
+    send(client_socket, message, strlen(message), 0);
+
+    close(client_socket);
 }

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <curl/curl.h>
 
-int upload_file(const char *file_path, const char *remote_url, const char *username, const char *password) {
+int upload_file(int socket, const char *file_path, const char *remote_url, const char *username, const char *password) {
     CURL *curl;
     CURLcode res = CURLE_OK;
 
@@ -22,6 +22,10 @@ int upload_file(const char *file_path, const char *remote_url, const char *usern
         // set ftp username and password
         curl_easy_setopt(curl, CURLOPT_USERPWD, username);
 
+        // set the socket
+        curl_easy_setopt(curl, CURLOPT_OPENSOCKETFUNCTION, NULL);
+        curl_easy_setopt(curl, CURLOPT_OPENSOCKETDATA, &socket);
+
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
@@ -37,7 +41,7 @@ int upload_file(const char *file_path, const char *remote_url, const char *usern
     return (res == CURLE_OK) ? 0 : 1;
 }
 
-int download_file(const char *remote_url, const char *file_path, const char *username, const char *password) {
+int download_file(int socket, const char *remote_url, const char *file_path, const char *username, const char *password) {
     CURL *curl;
     CURLcode res = CURLE_OK;
 
@@ -53,6 +57,11 @@ int download_file(const char *remote_url, const char *file_path, const char *use
 
         // set ftp username and password
         curl_easy_setopt(curl, CURLOPT_USERPWD, username);
+
+        // set the socket
+        curl_easy_setopt(curl, CURLOPT_OPENSOCKETFUNCTION, NULL);
+        curl_easy_setopt(curl, CURLOPT_OPENSOCKETDATA, &socket);
+
 
         // perform download
         res = curl_easy_perform(curl);
