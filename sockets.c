@@ -142,29 +142,25 @@ void receive_file_tcp(int port, const char *file_path) {
         return;
     }
 
-    // Read data from socket and write to file
-    /*
-    int bytes_received;
-    while ((bytes_received = read(new_socket, buffer, sizeof(buffer))) > 0) {
-        fwrite(buffer, 1, bytes_received, file);
-    }
-    */
-    // better algorithm for reading data from socket
+    // Receive file size first
     char file_size_str[20];
     read(new_socket, file_size_str, sizeof(file_size_str));
     long file_size = strtol(file_size_str, NULL, 10);
 
     long total_received = 0;
     while (total_received < file_size) {
-        ssize_t bytes_received = read(new_socket, buffer, sizeof(buffer));
+        ssize_t bytes_received = read(new_socket, buffer, BUFFER_SIZE);
         if (bytes_received <= 0) {
             break; // Handle end of file or error
         }
         fwrite(buffer, 1, bytes_received, file);
         total_received += bytes_received;
+
+        // Print progress
+        print_progress(total_received, file_size);
     }
 
-    printf("File received successfully.\n");
+    printf("\nFile received successfully.\n");
 
     // Cleanup
     fclose(file);
