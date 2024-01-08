@@ -3,16 +3,16 @@
 #include <stdio.h>
 
 int main(int argc, char* argv[]) {
-    int exit = 0;
+    short exit = 0;
     while(exit != 1) {
         char mode;
-        printf("Enter mode (s for sender, r for receiver, e for exit): ");
+        printf("\nEnter mode (s for sender, r for receiver, e for exit): ");
         scanf(" %c", &mode);
 
         if (mode == 's') {
-            send_file_tcp("localhost", 1111, "/home/sobek3/client1_files/text1.txt");
+            send_file_tcp("localhost", 1111, "/home/sobek3/client1_files/testfile");
         } else if (mode == 'r') {
-            receive_file_tcp(1111, "/home/sobek3/client2_files/text.txt");
+            receive_file_tcp(1111, "/home/sobek3/client2_files/testfile_copy");
         } else if (mode == 'e') {
             printf("Exiting application...\n");
             exit = 1;

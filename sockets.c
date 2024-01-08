@@ -51,6 +51,15 @@ void send_file_tcp(const char *ip, int port, const char *file_path) {
         return;
     }
 
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    rewind(file);
+
+    // Send the file size first
+    char file_size_str[20];
+    sprintf(file_size_str, "%ld", file_size);
+    send(socket_fd, file_size_str, sizeof(file_size_str), 0);
+
     // Read and send the file contents
     while (!feof(file)) {
         size_t bytes_read = fread(buffer, 1, sizeof(buffer), file);
