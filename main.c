@@ -1,21 +1,18 @@
 #include "sockets.h"
 
 #include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 
 int main(int argc, char* argv[]) {
-    if (argc == 0) {
-        printf("Program doesn't received any parameters.\n");
-        return 1;
-    }
-    if (strcmp(argv[1], "0") == 0) {
-        create_server_socket(8002);
-    } else if (strcmp(argv[1], "1") == 0) {
-        create_client_socket("", 8002);
+    char mode;
+    printf("Enter mode (s for sender, r for receiver): ");
+    scanf(" %c", &mode);
+
+    if (mode == 's') {
+        send_file_tcp("localhost", 1111, "/home/sobek3/client1_files/text1.txt");
+    } else if (mode == 'r') {
+        receive_file_tcp(1111, "/home/sobek3/client2_files/text.txt");
     } else {
-        printf("Wrong selected arguments.\n");
-        return 1;
+        printf("Invalid mode.\n");
     }
 
     return 0;
