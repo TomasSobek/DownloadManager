@@ -19,6 +19,21 @@ static int create_TCP_IPV4_socket(void) {
     return socket_fd;
 }
 
+static void print_progress(size_t total_sent, size_t total_size) {
+    const int bar_width = 50; // Width of the progress bar
+    float progress = (float)total_sent / total_size;
+    int pos = bar_width * progress;
+
+    printf("\r[");
+    for (int i = 0; i < bar_width; ++i) {
+        if (i < pos) printf("=");
+        else if (i == pos) printf(">");
+        else printf(" ");
+    }
+    printf("] %d %%", (int)(progress * 100.0));
+    fflush(stdout); // Flush stdout to update the progress bar in place
+}
+
 void send_file_tcp(const char *ip, int port, const char *file_path) {
     int socket_fd;
     struct sockaddr_in server_addr;
@@ -60,13 +75,18 @@ void send_file_tcp(const char *ip, int port, const char *file_path) {
     sprintf(file_size_str, "%ld", file_size);
     send(socket_fd, file_size_str, sizeof(file_size_str), 0);
 
-    // Read and send the file contents
+    // Read and send the file contents with progress update
+    size_t total_sent = 0;
     while (!feof(file)) {
         size_t bytes_read = fread(buffer, 1, sizeof(buffer), file);
-        send(socket_fd, buffer, bytes_read, 0);
+        if (bytes_read > 0) {
+            send(socket_fd, buffer, bytes_read, 0);
+            total_sent += bytes_read;
+            print_progress(total_sent, file_size);
+        }
     }
 
-    printf("File sent successfully.\n");
+    printf("\nFile sent successfully.\n");
 
     // Cleanup
     fclose(file);
