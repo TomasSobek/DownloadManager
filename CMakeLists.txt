@@ -10,8 +10,8 @@ include_directories(${CURL_INCLUDE_DIR})
 add_executable(SemestralnaPracaUdSP main.c
         sockets.c
         sockets.h
-        file_transfer.c
-        file_transfer.h
+        huffman_structures/huffman_node.c
+        huffman_structures/huffman_node.h
 )
 
 target_link_libraries(SemestralnaPracaUdSP ${CURL_LIBRARIES})
