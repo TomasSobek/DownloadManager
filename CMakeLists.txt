@@ -16,6 +16,10 @@ add_executable(SemestralnaPracaUdSP main.c
         huffman_structures/priority_queue.h
         huffman_structures/huffman_tree.c
         huffman_structures/huffman_tree.h
+        compression/utilities.c
+        compression/utilities.h
+        compression/compression.c
+        compression/compression.h
 )
 
 target_link_libraries(SemestralnaPracaUdSP ${CURL_LIBRARIES})
