@@ -3,13 +3,21 @@
 
 #include <stdio.h>
 
+#include "console.h"
+
 int main(int argc, char* argv[]) {
-    short exit = 0;
+    // short exit = 0;
+
+    /*
     printf("You are entering Huffman compression mode.\n");
     huffman_encode("/home/sobek3/client1_files/random_text.txt",
                    "/home/sobek3/client1_files/compressed_text.z");
     huffman_decode("/home/sobek3/client1_files/compressed_text.z",
                    "/home/sobek3/client1_files/decompressed_text.txt");
+    */
+
+    console_main();
+    printf("Exiting application...\n");
     /*
     while(exit != 1) {
         char mode;

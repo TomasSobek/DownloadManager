@@ -20,6 +20,8 @@ add_executable(SemestralnaPracaUdSP main.c
         compression/utilities.h
         compression/compression.c
         compression/compression.h
+        console.c
+        console.h
 )
 
 target_link_libraries(SemestralnaPracaUdSP ${CURL_LIBRARIES})
