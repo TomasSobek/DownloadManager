@@ -12,6 +12,8 @@ add_executable(SemestralnaPracaUdSP main.c
         sockets.h
         huffman_structures/huffman_node.c
         huffman_structures/huffman_node.h
+        huffman_structures/priority_queue.c
+        huffman_structures/priority_queue.h
 )
 
 target_link_libraries(SemestralnaPracaUdSP ${CURL_LIBRARIES})
