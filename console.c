@@ -37,11 +37,19 @@ static void clear_input_buffer() {
     while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
+static void get_string(char* buffer) {
+    if (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
+        buffer[strcspn(buffer, "\n")] = 0;
+    } else {
+        printf("Error reading input.\n");
+    }
+    clear_input_buffer();
+}
 
 void console_main(void) {
     while (1) {
         char mode;
-        char input_buffer[BUFFER_SIZE];
+        // char input_buffer[BUFFER_SIZE];
         printf("Choose a mode:\n");
         printf("'r', Receiver Mode\n");
         printf("'s', Sender Mode\n");
@@ -85,6 +93,7 @@ void receiver_mode(void) {
 
         } else if (choice == 'r') {
             int port;
+            // char file_path[BUFFER_SIZE];
             char* file_path = "/home/sobek3/client2_files/receiv.txt";
             printf("Select a port: ");
             scanf("%d", &port);
@@ -95,8 +104,8 @@ void receiver_mode(void) {
                 break;
             }
 
-            printf("Select file path for incoming file: ");
-
+            //printf("Select file path for incoming file: ");
+            // get_string(file_path);
             receive_file_tcp(port, file_path);
 
         } else if (choice == 'e') {
@@ -115,12 +124,14 @@ void sender_mode(void) {
         printf("'s', start sending files\n");
         printf("'e', exit mode\n");
 
+        printf("Enter your choice: ");
         scanf(" %c", &choice);
 
         if (choice == 'c') {
 
         } else if (choice == 's') {
             unsigned int port;
+            //char file_path[BUFFER_SIZE];
             char* file_path = "/home/sobek3/client1_files/send.txt";
             printf("Select a port: ");
             scanf(" %d", &port);
@@ -129,26 +140,11 @@ void sender_mode(void) {
                 printf("Not a valid port (1000, port, 65535). Your option: %d\n", port);
                 break;
             }
+            // clear_input_buffer();
+            //printf("Select file path for sending file: ");
+            //get_string(file_path);
 
-            printf("Select file path for sending file: ");
-            /*
-            fgets(file_path, sizeof(file_path), stdin);
-            clear_input_buffer();
-            size_t len = strlen(file_path);
-            if (len > 0 && file_path[len - 1] == '\n') {
-                file_path[len - 1] = '\0';
-            }
-            */
             send_file_tcp("localhost", port, file_path);
-            /*
-            if (is_file_exists(file_path)) {
-                printf("Starting receiving mode with port: %d", port);
-                send_file_tcp("localhost", port, file_path);
-            } else {
-                printf("Wrong file path / File does not exist.\n");
-                break;
-            }
-             */
         } else if (choice == 'e') {
             printf("Exiting receiver mode...\n");
             break;

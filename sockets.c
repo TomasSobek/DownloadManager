@@ -126,6 +126,7 @@ void receive_file_tcp(int port, const char *file_path) {
         close(server_fd);
         return;
     }
+    printf("Im listening on port: %d", port);
 
     if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
         perror("Accept failed");
