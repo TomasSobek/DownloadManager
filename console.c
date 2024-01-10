@@ -3,6 +3,7 @@
 #include "compression/compression.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,41 +11,46 @@
 
 #define BUFFER_SIZE 256
 
-// checking if file exists
-static _Bool is_file_exists(const char *file_path) {
-    struct stat fileStat;
-    if (stat(file_path, &fileStat) == 0) {
-        if (S_ISREG(fileStat.st_mode)) {
-            return true;        // is a file
-        } else if (S_ISDIR(fileStat.st_mode)) {
-            return false;       // is a directory
+char *dynamic_fgets(void) {
+    char *buffer = NULL;
+    size_t size = 0;
+    getline(&buffer, &size, stdin);
+
+    if (buffer) {
+        size_t length = strlen(buffer);
+        if (length > 0 && buffer[length - 1] == '\n') {
+            buffer[length - 1] = '\0'; // Remove newline character
         }
     }
-    return false;
+
+    return buffer;
 }
 
-// checking file path for file creation
-static _Bool is_file_creation_path_valid(const char *file_path) {
-    if (access(file_path, F_OK) == -1) {
-        return true;
-    } else {
-        return false;
-    }
+int file_exists(const char *path) {
+    struct stat buffer;
+    return (stat(path, &buffer) == 0);
 }
 
-static void clear_input_buffer() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF) { }
+char *get_valid_file_path(void) {
+    char *path;
+    do {
+        printf("Enter file path: ");
+        path = dynamic_fgets();
+
+        if (!path) {
+            printf("Error reading input.\n");
+            continue;
+        }
+
+        if (!file_exists(path)) {
+            printf("File not found: %s\n", path);
+            free(path);
+            path = NULL;
+        }
+    } while (!path);
+    return path;
 }
 
-static void get_string(char* buffer) {
-    if (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
-        buffer[strcspn(buffer, "\n")] = 0;
-    } else {
-        printf("Error reading input.\n");
-    }
-    clear_input_buffer();
-}
 
 void console_main(void) {
     while (1) {
@@ -77,134 +83,47 @@ void console_main(void) {
 
 // basic console functions
 void receiver_mode(void) {
-    while (1) {
-        char choice;
-        char input_buffer[BUFFER_SIZE];
-        printf("You are entering the receiver mode, make your choice:\n");
-        printf("'c', Execute command\n");
-        printf("'r', start receiving files\n");
-        printf("'e', exit mode\n");
+    unsigned int port;
+    char file_path[256];
 
-        printf("Enter choice: ");
-        scanf(" %c", &choice);
-        getchar();
+    char *fp;
+    // char* file_path = "/home/sobek3/client2_files/receiv.txt";
+    printf("Select a port: ");
+    scanf("%d", &port);
+    getchar();
 
-        if (choice == 'c') {
-
-        } else if (choice == 'r') {
-            int port;
-            // char file_path[BUFFER_SIZE];
-            char* file_path = "/home/sobek3/client2_files/receiv.txt";
-            printf("Select a port: ");
-            scanf("%d", &port);
-            getchar();
-
-            if (port < 1000 || port > 65535) {
-                printf("Not a valid port (1000 < port < 65535). Your option: %d\n", port);
-                break;
-            }
-
-            //printf("Select file path for incoming file: ");
-            // get_string(file_path);
-            receive_file_tcp(port, file_path);
-
-        } else if (choice == 'e') {
-            printf("Exiting receiver mode...\n");
-            break;
-        } else {
-            printf("Wrong option, try again.\n");
-        }
+    if (port < 1000 || port > 65535) {
+        printf("Not a valid port (1000 < port < 65535). Your option: %d\n", port);
+        return;
     }
+
+    //printf("Select file path for incoming file: ");
+    //get_string(file_path);
+    fp = get_valid_file_path();
+
+    receive_file_tcp(port, fp);
+    free(fp);
 }
 void sender_mode(void) {
-    while(1) {
-        char choice;
-        printf("You are entering the sender mode, make your choice:\n");
-        printf("'c', Execute command\n");
-        printf("'s', start sending files\n");
-        printf("'e', exit mode\n");
+    unsigned int port;
+    //char file_path[256];
+    char *fp;
+    //char* file_path = "/home/sobek3/client1_files/send.txt";
+    printf("Select a port: ");
+    scanf(" %d", &port);
 
-        printf("Enter your choice: ");
-        scanf(" %c", &choice);
-
-        if (choice == 'c') {
-
-        } else if (choice == 's') {
-            unsigned int port;
-            //char file_path[BUFFER_SIZE];
-            char* file_path = "/home/sobek3/client1_files/send.txt";
-            printf("Select a port: ");
-            scanf(" %d", &port);
-
-            if (port < 1000 || port > 65535) {
-                printf("Not a valid port (1000, port, 65535). Your option: %d\n", port);
-                break;
-            }
-            // clear_input_buffer();
-            //printf("Select file path for sending file: ");
-            //get_string(file_path);
-
-            send_file_tcp("localhost", port, file_path);
-        } else if (choice == 'e') {
-            printf("Exiting receiver mode...\n");
-            break;
-        } else {
-            printf("Wrong option, try again.\n");
-        }
+    if (port < 1000 || port > 65535) {
+        printf("Not a valid port (1000, port, 65535). Your option: %d\n", port);
+        return;
     }
+    // clear_input_buffer();
+    //printf("Select file path for sending file: ");
+    fp = get_valid_file_path();
+    send_file_tcp("localhost", port, fp);
+    free(fp);
 }
 void huffman_mode(void) {
-    while (1) {
-        char choice;
-        printf("You are entering the huffman compression mode, make your choice:\n");
-        printf("'c', Execute command\n");
-        printf("'n', Encode file\n");
-        printf("'d', Decode file\n");
-        printf("'e', exit mode\n");
 
-        scanf(" %c", &choice);
-
-        if (choice == 'c') {
-
-        } else if (choice == 'n') {
-            char input_file_path[256];
-            char output_file_path[256];
-
-            // input file
-            printf("Select input file path: ");
-            fgets(input_file_path, sizeof(input_file_path), stdin);
-            size_t len = strlen(input_file_path);
-            if (len > 0 && input_file_path[len - 1] == '\n') {
-                input_file_path[len - 1] = '\0';
-            }
-
-            if (!is_file_exists(input_file_path)) {
-                printf("Wrong input file path.\n");
-                break;
-            }
-
-            // output file
-            printf("Select output file path: ");
-            fgets(output_file_path, sizeof(output_file_path), stdin);
-            size_t out_len = strlen(output_file_path);
-            if (out_len > 0 && output_file_path[out_len - 1] == '\n') {
-                output_file_path[len - 1] = '\0';
-            }
-
-            if (is_file_creation_path_valid(output_file_path)) {
-                printf("Huffman encoding: \n");
-                huffman_encode(input_file_path, output_file_path);
-            } else {
-                printf("Wrong output file path.\n");
-                break;
-            }
-        } else if (choice == 'e') {
-            printf("Exiting receiver mode...\n");
-            break;
-        } else {
-            printf("Wrong option, try again.\n");
-        }
-    }
 }
 void execute_command(const char *command);
 
