@@ -153,7 +153,6 @@ void huffman_encode(const char *input_filename, const char *output_filename) {
     }
 
     printf("Serializing huffman tree: ");
-    // Serialize and write the Huffman tree to the output file
     serialize_huffman_tree(root, output_file);
     printf("success.\n");
 
@@ -226,7 +225,6 @@ void huffman_decode(const char *input_filename, const char *output_filename) {
     printf("success.\n");
 
     printf("Decoding data: ");
-    // Decode the data using the Huffman tree and write to the output file.
     decode_data(input_file, output_file, root);
     printf(" success.\n");
 
