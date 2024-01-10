@@ -187,7 +187,8 @@ void receive_file_tcp(int port, const char *file_path) {
     char file_size_str[20] = {0}; // Initialize all elements to zero
     ssize_t bytes_read = read(new_socket, file_size_str, sizeof(file_size_str) - 1); // Leave space for the null terminator
     if (bytes_read < 0) {
-        // Handle read error
+        printf("No file size received.\n");
+        return;
     }
     file_size_str[bytes_read] = '\0'; // Explicitly null-terminate the string
     long file_size = strtol(file_size_str, NULL, 10);
