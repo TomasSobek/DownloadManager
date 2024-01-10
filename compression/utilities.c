@@ -15,5 +15,6 @@ void calculate_frequencies(const char* filename, unsigned long long freq[]) {
             freq[buffer[i]]++;
         }
     }
+
     fclose(file);
 }

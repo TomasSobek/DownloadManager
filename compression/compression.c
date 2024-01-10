@@ -37,6 +37,7 @@ static void generate_huffman_codes(HUFFMAN_NODE *root, char** codes, char *code,
 
 // serialize and write the Huffman tree to the output file.
 static void serialize_huffman_tree(HUFFMAN_NODE *root, FILE *output_file) {
+    /*
     if (root == NULL) {
         return;
     }
@@ -51,6 +52,41 @@ static void serialize_huffman_tree(HUFFMAN_NODE *root, FILE *output_file) {
         serialize_huffman_tree(root->left, output_file);
         serialize_huffman_tree(root->right, output_file);
     }
+     */
+    static char debug_string[1024] = ""; // Buffer to keep track of the serialization stream
+    static int depth = 0; // Depth in the tree
+
+    if (root == NULL) {
+        return;
+    }
+
+    // Ensure we don't overflow the buffer
+    if (depth >= 1023) {
+        printf("serialize_huffman_tree: Debug string buffer overflow.\n");
+        return;
+    }
+
+    // Write a leaf marker followed by the character if it's a leaf node
+    if (root->left == NULL && root->right == NULL) {
+        debug_string[depth++] = '1'; // Add '1' to the debug string
+        debug_string[depth] = '\0';  // Null-terminate the string
+        printf("serialize_huffman_tree: Leaf node '%c', Stream: %s\n", root->character, debug_string);
+
+        fputc('1', output_file);
+        fputc(root->character, output_file);
+    } else {
+        // Otherwise, write a non-leaf marker and recurse
+        debug_string[depth++] = '0'; // Add '0' to the debug string
+        debug_string[depth] = '\0';  // Null-terminate the string
+        printf("serialize_huffman_tree: Internal node, Stream: %s\n", debug_string);
+
+        fputc('0', output_file);
+        serialize_huffman_tree(root->left, output_file);
+        serialize_huffman_tree(root->right, output_file);
+    }
+
+    depth--;
+    //printf("%s\n", debug_string);
 }
 
 static HUFFMAN_NODE* deserialize_huffman_tree(FILE *input_file) {
@@ -112,7 +148,6 @@ void huffman_encode(const char *input_filename, const char *output_filename) {
     HUFFMAN_NODE *root = build_huffman_tree(data, freq, 256);
     printf("I have created huffman tree.\n");
 
-
     // Array to store Huffman codes
     char* codes[256] = {0};
     char code[256];
@@ -137,41 +172,36 @@ void huffman_encode(const char *input_filename, const char *output_filename) {
 
     // Serialize and write the Huffman tree to the output file
     serialize_huffman_tree(root, output_file);
-
     printf("I have serialized huffman tree.\n");
+
+    // Encoding process starts here
     unsigned char buffer;
+    unsigned char out_byte = 0;
+    int bit_count = 0;
+
     while (fread(&buffer, 1, 1, input_file)) {
-        unsigned char out_byte = 0;
-        int bit_count = 0;
+        char* codee = codes[buffer];  // Retrieve the Huffman code for the byte.
 
-        while (fread(&buffer, 1, 1, input_file)) {
-            char* codee = codes[buffer];  // Retrieve the Huffman code for the byte.
+        for (int i = 0; codee[i] != '\0'; i++) {
+            out_byte <<= 1;
+            if (codee[i] == '1') {
+                out_byte |= 1;
+            }
+            bit_count++;
 
-            for (int i = 0; codee[i] != '\0'; i++) {
-                // Shift out_byte left by 1 and add the current bit.
-                out_byte <<= 1;
-                if (codee[i] == '1') {
-                    out_byte |= 1;
-                }
-                bit_count++;
-
-                // When we have 8 bits, write them to the file.
-                if (bit_count == 8) {
-                    fwrite(&out_byte, 1, 1, output_file);
-                    bit_count = 0;
-                    out_byte = 0;
-                }
+            // When we have 8 bits, write them to the file.
+            if (bit_count == 8) {
+                fwrite(&out_byte, 1, 1, output_file);
+                bit_count = 0;
+                out_byte = 0;
             }
         }
+    }
 
-        // Write any remaining bits (with padding if necessary).
-        if (bit_count > 0) {
-            out_byte <<= (8 - bit_count); // Pad the remaining bits with zeros.
-            fwrite(&out_byte, 1, 1, output_file);
-        }
-
-        // This is a simplified version; actual implementation needs bit-level operations.
-        fputs(codes[buffer], output_file);
+    // Write any remaining bits (with padding if necessary).
+    if (bit_count > 0) {
+        out_byte <<= (8 - bit_count); // Pad the remaining bits with zeros.
+        fwrite(&out_byte, 1, 1, output_file);
     }
 
     fclose(input_file);

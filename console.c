@@ -55,11 +55,11 @@ char *get_valid_file_path(void) {
 void console_main(void) {
     while (1) {
         char mode;
-        // char input_buffer[BUFFER_SIZE];
         printf("Choose a mode:\n");
         printf("'r', Receiver Mode\n");
         printf("'s', Sender Mode\n");
         printf("'h', Huffman Mode\n");
+        printf("'c', Commands executing mode\n");
         printf("'e', Exit\n");
         printf("Enter your choice: ");
 
@@ -72,6 +72,8 @@ void console_main(void) {
             sender_mode();
         } else if (mode == 'h') {
             huffman_mode();
+        } else if (mode == 'c') {
+            commands_mode();
         } else if (mode == 'e') {
             printf("Exiting the program.\n");
             break;
@@ -81,7 +83,7 @@ void console_main(void) {
     }
  }
 
-// basic console functions
+// basic console modes
 void receiver_mode(void) {
     unsigned int port;
     char file_path[256];
@@ -104,6 +106,7 @@ void receiver_mode(void) {
     receive_file_tcp(port, fp);
     free(fp);
 }
+
 void sender_mode(void) {
     unsigned int port;
     //char file_path[256];
@@ -122,12 +125,29 @@ void sender_mode(void) {
     send_file_tcp("localhost", port, fp);
     free(fp);
 }
-void huffman_mode(void) {
 
+void huffman_mode(void) {
+    printf("You are entering Huffman compression mode.\n");
+    huffman_encode("/home/sobek3/client1_files/helloworld.txt",
+                   "/home/sobek3/client1_files/compressed_text.z");
+    huffman_decode("/home/sobek3/client1_files/compressed_text.z",
+                   "/home/sobek3/client1_files/helloworld-decompressed.txt");
 }
-void execute_command(const char *command);
+
+void commands_mode(void) {
+    printf("You are entering commands mode.\n");
+}
+
 
 // linux commands functions
-void ls_command(void);
-void mkdir_command(void);
-void rmdir_command(void);
+static void execute_command(const char *command);
+static void ls_command(void);
+static void mkdir_command(void);
+static void rmdir_command(void);
+static void rmfile_command(const char* file_path) {
+    if (remove(file_path) == 0) {
+        printf("File was removed successfully.\n");
+    } else {
+        perror("Error removing file.\n");
+    }
+}
