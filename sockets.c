@@ -1,4 +1,5 @@
 #include "sockets.h"
+#include "compression/compression.h"
 
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -32,6 +33,41 @@ static void print_progress(size_t total_sent, size_t total_size) {
     }
     printf("] %d %%", (int)(progress * 100.0));
     fflush(stdout); // Flush stdout to update the progress bar in place
+}
+
+
+static char* replace_filename(const char *file_path, const char *new_filename) {
+    size_t path_length = strlen(file_path);
+
+    // Find the last '/' or '\' in the path
+    char *last_slash = strrchr(file_path, '/');
+    if (last_slash == NULL) {
+        last_slash = strrchr(file_path, '\\');
+    }
+
+    char *modified_path = NULL;
+
+    if (last_slash != NULL) {
+        // Calculate the position of the last slash in the string
+        size_t last_slash_position = last_slash - file_path;
+
+        // Allocate memory for the modified path
+        modified_path = (char*)malloc(path_length + 1);
+
+        if (modified_path != NULL) {
+            // Copy the original path into the modified path
+            strcpy(modified_path, file_path);
+
+            // Copy the new filename into the path after the last slash
+            strcpy(modified_path + last_slash_position + 1, new_filename);
+        }
+    }
+    else {
+        // If no slash or backslash is found, return a copy of the new filename
+        modified_path = strdup(new_filename);
+    }
+
+    return modified_path;
 }
 
 void send_file_tcp(const char *ip, int port, const char *file_path) {
@@ -163,6 +199,9 @@ void receive_file_tcp(int port, const char *file_path) {
 
     printf("\nFile received successfully.\n");
 
+    // solve decompressed file naming logic
+    //char *decompressed_file_path = replace_filename(file_path, "decompressed_message.f");
+    //huffman_decode(file_path, decompressed_file_path);
     // Cleanup
     fclose(file);
     close(new_socket);

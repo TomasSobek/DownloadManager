@@ -11,7 +11,7 @@
 
 #define BUFFER_SIZE 256
 
-char *dynamic_fgets(void) {
+static char *dynamic_fgets(void) {
     char *buffer = NULL;
     size_t size = 0;
     getline(&buffer, &size, stdin);
@@ -26,12 +26,12 @@ char *dynamic_fgets(void) {
     return buffer;
 }
 
-int file_exists(const char *path) {
+static int file_exists(const char *path) {
     struct stat buffer;
     return (stat(path, &buffer) == 0);
 }
 
-char *get_valid_file_path(void) {
+static char *get_valid_file_path(void) {
     char *path;
     do {
         printf("Enter file path: ");
@@ -51,6 +51,39 @@ char *get_valid_file_path(void) {
     return path;
 }
 
+static char* replace_filename(const char *file_path, const char *new_filename) {
+    size_t path_length = strlen(file_path);
+
+    // Find the last '/' or '\' in the path
+    char *last_slash = strrchr(file_path, '/');
+    if (last_slash == NULL) {
+        last_slash = strrchr(file_path, '\\');
+    }
+
+    char *modified_path = NULL;
+
+    if (last_slash != NULL) {
+        // Calculate the position of the last slash in the string
+        size_t last_slash_position = last_slash - file_path;
+
+        // Allocate memory for the modified path
+        modified_path = (char*)malloc(path_length + 1);
+
+        if (modified_path != NULL) {
+            // Copy the original path into the modified path
+            strcpy(modified_path, file_path);
+
+            // Copy the new filename into the path after the last slash
+            strcpy(modified_path + last_slash_position + 1, new_filename);
+        }
+    }
+    else {
+        // If no slash or backslash is found, return a copy of the new filename
+        modified_path = strdup(new_filename);
+    }
+
+    return modified_path;
+}
 
 void console_main(void) {
     while (1) {
@@ -86,7 +119,7 @@ void console_main(void) {
 // basic console modes
 void receiver_mode(void) {
     unsigned int port;
-    char file_path[256];
+    // char file_path[256];
 
     char *fp;
     // char* file_path = "/home/sobek3/client2_files/receiv.txt";
@@ -104,6 +137,8 @@ void receiver_mode(void) {
     fp = get_valid_file_path();
 
     receive_file_tcp(port, fp);
+    //char *decompressed_file_path = replace_filename(fp, "decompressed_message.f");
+    huffman_decode(fp, "/home/sobek3/client2_files/decompressed_message.f");
     free(fp);
 }
 
@@ -122,8 +157,11 @@ void sender_mode(void) {
     // clear_input_buffer();
     //printf("Select file path for sending file: ");
     fp = get_valid_file_path();
-    send_file_tcp("localhost", port, fp);
+    char *compressed_file_path = replace_filename(fp, "compressed.z");
+    huffman_encode(fp, compressed_file_path);
+    send_file_tcp("localhost", port, compressed_file_path);
     free(fp);
+    free(compressed_file_path);
 }
 
 void huffman_mode(void) {
