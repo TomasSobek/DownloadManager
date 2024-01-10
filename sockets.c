@@ -36,8 +36,6 @@ static void print_progress(size_t total_sent, size_t total_size) {
 
 
 static char* replace_filename(const char *file_path, const char *new_filename) {
-    size_t path_length = strlen(file_path);
-
     // Find the last '/' or '\' in the path
     char *last_slash = strrchr(file_path, '/');
     if (last_slash == NULL) {
@@ -51,7 +49,7 @@ static char* replace_filename(const char *file_path, const char *new_filename) {
         size_t last_slash_position = last_slash - file_path;
 
         // Allocate memory for the modified path
-        modified_path = (char*)malloc(path_length + 1);
+        modified_path = (char*)malloc(256);
 
         if (modified_path != NULL) {
             // Copy the original path into the modified path
@@ -73,7 +71,7 @@ void send_file_tcp(const char *ip, int port, const char *file_path) {
     int socket_fd;
     struct sockaddr_in server_addr;
     FILE *file;
-    char buffer[1024];
+    char buffer[BUFFER_SIZE];
 
     // Creating socket
     socket_fd = create_TCP_IPV4_socket();
@@ -108,10 +106,12 @@ void send_file_tcp(const char *ip, int port, const char *file_path) {
     // Send the file size first
     char file_size_str[20];
     sprintf(file_size_str, "%ld", file_size);
-    send(socket_fd, file_size_str, sizeof(file_size_str), 0);
+    size_t str_length = strlen(file_size_str);
+    send(socket_fd, file_size_str, str_length, 0);
 
     // Read and send the file contents with progress update
     size_t total_sent = 0;
+    memset(buffer, 0, sizeof(buffer));
     while (!feof(file)) {
         size_t bytes_read = fread(buffer, 1, sizeof(buffer), file);
         if (bytes_read > 0) {
@@ -179,8 +179,17 @@ void receive_file_tcp(int port, const char *file_path) {
     }
 
     // Receive file size first
+    /*
     char file_size_str[20];
     read(new_socket, file_size_str, sizeof(file_size_str));
+    long file_size = strtol(file_size_str, NULL, 10);
+     */
+    char file_size_str[20] = {0}; // Initialize all elements to zero
+    ssize_t bytes_read = read(new_socket, file_size_str, sizeof(file_size_str) - 1); // Leave space for the null terminator
+    if (bytes_read < 0) {
+        // Handle read error
+    }
+    file_size_str[bytes_read] = '\0'; // Explicitly null-terminate the string
     long file_size = strtol(file_size_str, NULL, 10);
 
     long total_received = 0;
