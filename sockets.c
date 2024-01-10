@@ -1,5 +1,4 @@
 #include "sockets.h"
-#include "compression/compression.h"
 
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -199,9 +198,6 @@ void receive_file_tcp(int port, const char *file_path) {
 
     printf("\nFile received successfully.\n");
 
-    // solve decompressed file naming logic
-    //char *decompressed_file_path = replace_filename(file_path, "decompressed_message.f");
-    //huffman_decode(file_path, decompressed_file_path);
     // Cleanup
     fclose(file);
     close(new_socket);

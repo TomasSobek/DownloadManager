@@ -4,9 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/stat.h>
 
 #define BUFFER_SIZE 256
@@ -52,8 +50,6 @@ static char *get_valid_file_path(void) {
 }
 
 static char* replace_filename(const char *file_path, const char *new_filename) {
-    size_t path_length = strlen(file_path);
-
     // Find the last '/' or '\' in the path
     char *last_slash = strrchr(file_path, '/');
     if (last_slash == NULL) {
@@ -67,7 +63,7 @@ static char* replace_filename(const char *file_path, const char *new_filename) {
         size_t last_slash_position = last_slash - file_path;
 
         // Allocate memory for the modified path
-        modified_path = (char*)malloc(path_length + 1);
+        modified_path = (char*)malloc(BUFFER_SIZE);
 
         if (modified_path != NULL) {
             // Copy the original path into the modified path
@@ -92,7 +88,7 @@ void console_main(void) {
         printf("'r', Receiver Mode\n");
         printf("'s', Sender Mode\n");
         printf("'h', Huffman Mode\n");
-        printf("'c', Commands executing mode\n");
+        // printf("'c', Commands executing mode\n");
         printf("'e', Exit\n");
         printf("Enter your choice: ");
 
@@ -105,8 +101,6 @@ void console_main(void) {
             sender_mode();
         } else if (mode == 'h') {
             huffman_mode();
-        } else if (mode == 'c') {
-            commands_mode();
         } else if (mode == 'e') {
             printf("Exiting the program.\n");
             break;
@@ -119,8 +113,6 @@ void console_main(void) {
 // basic console modes
 void receiver_mode(void) {
     unsigned int port;
-    // char file_path[256];
-
     char *fp;
     // char* file_path = "/home/sobek3/client2_files/receiv.txt";
     printf("Select a port: ");
@@ -135,7 +127,9 @@ void receiver_mode(void) {
     fp = get_valid_file_path();
 
     receive_file_tcp(port, fp);
-    char *decompressed_file_path = replace_filename(fp, "decompressed_message.f");
+    char *decompressed_file_path = replace_filename(fp, "decompressed.f");
+    char file_name_buffer[BUFFER_SIZE];
+    strcpy(file_name_buffer, decompressed_file_path);
     huffman_decode(fp, decompressed_file_path);
     free(fp);
     free(decompressed_file_path);
@@ -143,38 +137,44 @@ void receiver_mode(void) {
 
 void sender_mode(void) {
     unsigned int port;
-    //char file_path[256];
     char *fp;
     //char* file_path = "/home/sobek3/client1_files/send.txt";
     printf("Select a port: ");
     scanf(" %d", &port);
+    getchar();
 
     if (port < 1000 || port > 65535) {
         printf("Not a valid port (1000, port, 65535). Your option: %d\n", port);
         return;
     }
-    // clear_input_buffer();
-    //printf("Select file path for sending file: ");
+
     fp = get_valid_file_path();
+
     char *compressed_file_path = replace_filename(fp, "compressed.z");
-    huffman_encode(fp, compressed_file_path);
-    send_file_tcp("localhost", port, compressed_file_path);
+    char file_name_buffer[BUFFER_SIZE];
+    strcpy(file_name_buffer, compressed_file_path);
+    huffman_encode(fp, file_name_buffer);
+    send_file_tcp("localhost", port, file_name_buffer);
     free(fp);
     free(compressed_file_path);
 }
 
 void huffman_mode(void) {
     printf("You are entering Huffman compression mode.\n");
-    huffman_encode("/home/sobek3/client1_files/helloworld.txt",
-                   "/home/sobek3/client1_files/compressed_text.z");
-    huffman_decode("/home/sobek3/client1_files/compressed_text.z",
-                   "/home/sobek3/client1_files/helloworld-decompressed.txt");
-}
+    char *fp;
+    fp = get_valid_file_path();
+    char *compressed_file_path = replace_filename(fp, "hf_compressed.z");
+    char *decompressed_file_path = replace_filename(fp, "hf_decompressed.f");
+    huffman_encode(fp,
+                   compressed_file_path);
+    huffman_decode(compressed_file_path,
+                   decompressed_file_path);
 
-void commands_mode(void) {
-    printf("You are entering commands mode.\n");
+    // cleanup
+    free(fp);
+    free(compressed_file_path);
+    free(decompressed_file_path);
 }
-
 
 // linux commands functions
 static void execute_command(const char *command);

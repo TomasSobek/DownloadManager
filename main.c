@@ -1,10 +1,7 @@
-#include "sockets.h"
-#include "compression/compression.h"
+#include "console.h"
 
 #include <stdio.h>
 #include <string.h>
-
-#include "console.h"
 
 
 int main(int argc, char* argv[]) {
@@ -24,8 +21,6 @@ int main(int argc, char* argv[]) {
         printf("Invalid mode. Available modes are 'sender', 'receiver', 'huffman'.\n");
         return 1;
     }
-
-    //console_main();
     printf("Exiting application...\n");
     return 0;
 }
