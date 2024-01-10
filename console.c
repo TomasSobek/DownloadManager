@@ -132,14 +132,13 @@ void receiver_mode(void) {
         return;
     }
 
-    //printf("Select file path for incoming file: ");
-    //get_string(file_path);
     fp = get_valid_file_path();
 
     receive_file_tcp(port, fp);
-    //char *decompressed_file_path = replace_filename(fp, "decompressed_message.f");
-    huffman_decode(fp, "/home/sobek3/client2_files/decompressed_message.f");
+    char *decompressed_file_path = replace_filename(fp, "decompressed_message.f");
+    huffman_decode(fp, decompressed_file_path);
     free(fp);
+    free(decompressed_file_path);
 }
 
 void sender_mode(void) {
