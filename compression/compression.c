@@ -22,11 +22,11 @@ static void generate_huffman_codes(HUFFMAN_NODE *root, char** codes, char *code,
     if (!root->left && !root->right) {
         // codes[root->character] = strdup(code);
         code[top] = '\0'; // Null-terminate the code string
-        if (root->character == '\n') {
-            printf("Character: endl, Code: %s\n", code);
-        } else {
-            printf("Character: %c, Code: %s\n", root->character, code); // Debugging print
-        }
+        // if (root->character == '\n') {
+        //    printf("Character: endl, Code: %s\n", code);
+        // } else {
+        //    printf("Character: %c, Code: %s\n", root->character, code); // Debugging print
+        // }
         codes[root->character] = strdup(code);
         if (codes[root->character] == NULL) {
             fprintf(stderr, "Memory allocation failed for code of character %c\n", root->character);
@@ -37,22 +37,6 @@ static void generate_huffman_codes(HUFFMAN_NODE *root, char** codes, char *code,
 
 // serialize and write the Huffman tree to the output file.
 static void serialize_huffman_tree(HUFFMAN_NODE *root, FILE *output_file) {
-    /*
-    if (root == NULL) {
-        return;
-    }
-
-    // Write a leaf marker followed by the character if it's a leaf node
-    if (root->left == NULL && root->right == NULL) {
-        fputc('1', output_file); // '1' indicates a leaf node
-        fputc(root->character, output_file);
-    } else {
-        // Otherwise, write a non-leaf marker and recurse
-        fputc('0', output_file); // '0' indicates a non-leaf node
-        serialize_huffman_tree(root->left, output_file);
-        serialize_huffman_tree(root->right, output_file);
-    }
-     */
     static char debug_string[1024] = ""; // Buffer to keep track of the serialization stream
     static int depth = 0; // Depth in the tree
 
@@ -68,25 +52,23 @@ static void serialize_huffman_tree(HUFFMAN_NODE *root, FILE *output_file) {
 
     // Write a leaf marker followed by the character if it's a leaf node
     if (root->left == NULL && root->right == NULL) {
-        debug_string[depth++] = '1'; // Add '1' to the debug string
-        debug_string[depth] = '\0';  // Null-terminate the string
-        printf("serialize_huffman_tree: Leaf node '%c', Stream: %s\n", root->character, debug_string);
+        // debug_string[depth++] = '1'; // Add '1' to the debug string
+        // debug_string[depth] = '\0';  // Null-terminate the string
+        // printf("serialize_huffman_tree: Leaf node '%c', Stream: %s\n", root->character, debug_string);
 
         fputc('1', output_file);
         fputc(root->character, output_file);
     } else {
         // Otherwise, write a non-leaf marker and recurse
-        debug_string[depth++] = '0'; // Add '0' to the debug string
-        debug_string[depth] = '\0';  // Null-terminate the string
-        printf("serialize_huffman_tree: Internal node, Stream: %s\n", debug_string);
+        // debug_string[depth++] = '0'; // Add '0' to the debug string
+        // debug_string[depth] = '\0';  // Null-terminate the string
+        // printf("serialize_huffman_tree: Internal node, Stream: %s\n", debug_string);
 
         fputc('0', output_file);
         serialize_huffman_tree(root->left, output_file);
         serialize_huffman_tree(root->right, output_file);
     }
-
     depth--;
-    //printf("%s\n", debug_string);
 }
 
 static HUFFMAN_NODE* deserialize_huffman_tree(FILE *input_file) {
@@ -145,15 +127,17 @@ void huffman_encode(const char *input_filename, const char *output_filename) {
         data[i] = (char)i;
     }
 
+    printf("Creating huffman tree: ");
     HUFFMAN_NODE *root = build_huffman_tree(data, freq, 256);
-    printf("I have created huffman tree.\n");
+    printf("success.\n");
 
     // Array to store Huffman codes
     char* codes[256] = {0};
     char code[256];
     int top = 0;
+    printf("Generating huffman code: ");
     generate_huffman_codes(root, codes, code, top);
-    printf("I have generated huffman codes.\n");
+    printf("success.\n");
 
     FILE* input_file = fopen(input_filename, "rb");
     if (input_file == NULL) {
@@ -168,11 +152,10 @@ void huffman_encode(const char *input_filename, const char *output_filename) {
         return;
     }
 
-    printf("I have opened both files.\n");
-
+    printf("Serializing huffman tree: ");
     // Serialize and write the Huffman tree to the output file
     serialize_huffman_tree(root, output_file);
-    printf("I have serialized huffman tree.\n");
+    printf("success.\n");
 
     // Encoding process starts here
     unsigned char buffer;
@@ -215,11 +198,14 @@ void huffman_encode(const char *input_filename, const char *output_filename) {
 }
 
 void huffman_decode(const char *input_filename, const char *output_filename) {
+
     FILE* input_file = fopen(input_filename, "rb");
     if (input_file == NULL) {
         perror("Error opening input file");
         return;
     }
+
+    printf("Starting decoding file: %s\n", input_filename);
 
     FILE* output_file = fopen(output_filename, "wb");
     if (output_file == NULL) {
@@ -228,6 +214,7 @@ void huffman_decode(const char *input_filename, const char *output_filename) {
         return;
     }
 
+    printf("Deserializing huffman tree: ");
     // Reconstruct the Huffman tree from the input file.
     HUFFMAN_NODE* root = deserialize_huffman_tree(input_file);
     if (root == NULL) {
@@ -236,11 +223,15 @@ void huffman_decode(const char *input_filename, const char *output_filename) {
         fclose(output_file);
         return;
     }
+    printf("success.\n");
 
+    printf("Decoding data: ");
     // Decode the data using the Huffman tree and write to the output file.
     decode_data(input_file, output_file, root);
+    printf(" success.\n");
 
     fclose(input_file);
     fclose(output_file);
     destroy_huffman_tree(root);
+    printf("File decoded successfully!, File path: %s\n", output_filename);
 }
